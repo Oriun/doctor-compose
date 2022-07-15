@@ -42,7 +42,7 @@ export async function writeCompose() {
     env: {} as { [key: string]: string } | null
   };
 }
-export async function main({} = {}) {
+export default async function main({} = {}) {
   console.log(
     blue(
       "\nWelcome to Doctor-Compose, the CLI that diagnose your app and find you the best docker-compose solution.\n"

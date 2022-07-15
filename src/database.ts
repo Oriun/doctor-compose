@@ -7,12 +7,8 @@ import { randomBytes } from "crypto";
 const SUPPORTED_DB = database_data.supported_db;
 type DB = typeof SUPPORTED_DB[number];
 
-const IMAGE_NAME = database_data.db_images as {
-    [key in DB]: string
-  };
-const DB_STORAGE = database_data.db_storage as {
-    [key in DB]: string
-  };
+const IMAGE_NAME = database_data.db_images as { [key in DB]: string };
+const DB_STORAGE = database_data.db_storage as { [key in DB]: string };
 
 const PERSIST_MODE = database_data.persistModes;
 type PERSIST = typeof PERSIST_MODE[number];
@@ -42,7 +38,7 @@ async function getTags(url: string): Promise<TagsList> {
     .sort()
     .reverse();
   const recommended =
-    allTags.find((tag: string) => /^\d(\.\d(\.\d)?)$/.test(tag)) || allTags[0];
+    allTags.find((tag: string) => /^\d+(\.\d+(\.\d+)?)$/.test(tag)) || allTags[0];
   return {
     latest100: allTags,
     recommended
@@ -51,15 +47,19 @@ async function getTags(url: string): Promise<TagsList> {
 
 function populate(str: string, data?: { [key: string]: string }) {
   return str
-  .replace(/\${RANDOM_STRING}/g, () => randomBytes(10).toString("base64").replace(/\=/g, ""))
-  .replace(/\${([^}]+)}/g, (_, key) => data?.[key] || "");
+    .replace(/\${RANDOM_STRING}/g, () =>
+      randomBytes(10).toString("base64").replace(/\=/g, "")
+    )
+    .replace(/\${([^}]+)}/g, (_, key) => {
+      if (!data || !data[key]) return "";
+      return data[key];
+    });
 }
 
 export default async function Database() {
   console.log(blue("Let's create a fresh a database !"));
 
   var typeOfDatabase: DB,
-    persistMode: PERSIST,
     persistLocation: string,
     persistVolume: string,
     expose: boolean,
@@ -69,7 +69,7 @@ export default async function Database() {
     loadEnvFromFile: boolean,
     env: { [key: string]: string | null } | null = {},
     serviceName: string,
-    containerName: string;
+    container_name: string;
 
   var { typeOfDatabase } = await Inquirer.prompt<{ typeOfDatabase: DB }>({
     type: "list",
@@ -80,49 +80,60 @@ export default async function Database() {
 
   const images = getTags(DOCKERHUB_TAGS[typeOfDatabase]);
 
-  var { persistMode } = await Inquirer.prompt<{ persistMode: PERSIST }>({
-    type: "list",
-    name: "persistMode",
-    message: "Do you want to persist the database on disk or on a volume?",
-    choices: PERSIST_MODE
-  });
-
-  if (persistMode === "Disk") {
-    var { persistLocation } = await Inquirer.prompt<{
-      persistLocation: string;
-    }>({
+  var { persistLocation, persistVolume } = await Inquirer.prompt<{
+    persistMode: PERSIST;
+    persistVolume: string;
+    persistLocation: string;
+  }>([
+    {
+      type: "list",
+      name: "persistMode",
+      message: "Do you want to persist the database on disk or on a volume?",
+      choices: PERSIST_MODE
+    },
+    {
       type: "input",
       name: "persistLocation",
       message: "Where to persist ?",
       default: "./" + typeOfDatabase.toLowerCase() + ".db",
       filter(input: string) {
-        if(/^[a-z:\.]{0,3}\/.+/i.test(input)) return input
-        return "./" + input
+        if (/^[a-z:\.]{0,3}\/.+/i.test(input)) return input;
+        return "./" + input;
+      },
+      when(answers: { persistMode: PERSIST }) {
+        return answers.persistMode === "Disk";
       }
-    });
-  } else {
-    var { persistVolume } = await Inquirer.prompt<{ persistVolume: string }>({
+    },
+    {
       type: "input",
       name: "persistVolume",
       message: "Where to persist ?",
-      default: typeOfDatabase.toLowerCase() + ".db"
-    });
-  }
+      default: typeOfDatabase.toLowerCase() + ".db",
+      when(answers: { persistMode: PERSIST }) {
+        return answers.persistMode === "Volume";
+      }
+    }
+  ]);
 
-  var { expose } = await Inquirer.prompt<{ expose: boolean }>({
-    type: "confirm",
-    name: "expose",
-    message: "Do you want to expose it from outside of the app"
-  });
-
-  if (expose) {
-    var { exposePort } = await Inquirer.prompt<{ exposePort: number }>({
+  var { expose, exposePort } = await Inquirer.prompt<{
+    expose: boolean;
+    exposePort: number;
+  }>([
+    {
+      type: "confirm",
+      name: "expose",
+      message: "Do you want to access it from outside of the app"
+    },
+    {
       type: "number",
       name: "exposePort",
-      message: "What port do you want to expose it on ?",
-      default: DEFAULT_PORT[typeOfDatabase]
-    });
-  }
+      message: "What port do you want to access it on ?",
+      default: DEFAULT_PORT[typeOfDatabase],
+      when(answers: { expose: boolean }) {
+        return answers.expose;
+      }
+    }
+  ]);
 
   var { restartPolicy } = await Inquirer.prompt<{ restartPolicy: string }>({
     type: "list",
@@ -145,14 +156,18 @@ export default async function Database() {
     pageSize: 8
   });
 
-  var { loadEnvFromFile } = await Inquirer.prompt<{
-    loadEnvFromFile: boolean;
-  }>({
-    type: "confirm",
-    name: "loadEnvFromFile",
-    message: "Load enviroment variables from a file ?",
-    default: true
-  });
+  if (!DB_ENVS[typeOfDatabase].length) {
+    loadEnvFromFile = true;
+  } else {
+    var { loadEnvFromFile } = await Inquirer.prompt<{
+      loadEnvFromFile: boolean;
+    }>({
+      type: "confirm",
+      name: "loadEnvFromFile",
+      message: "Load enviroment variables from a file (and define optionals later) ?",
+      default: true
+    });
+  }
 
   for (const env_object of DB_ENVS[typeOfDatabase]) {
     if (loadEnvFromFile && !env_object.mandatory) {
@@ -173,36 +188,38 @@ export default async function Database() {
     type: "input",
     name: "serviceName",
     message: "What is the name of the service ?",
-    default: "doctor-"+typeOfDatabase.toLowerCase()
+    default: "doctor-" + typeOfDatabase.toLowerCase()
   });
 
-  var { containerName } = await Inquirer.prompt<{ containerName: string }>({
+  var { container_name } = await Inquirer.prompt<{ container_name: string }>({
     type: "input",
-    name: "containerName",
+    name: "container_name",
     message: "What is the name of the container ?",
-    default: "doctor-"+typeOfDatabase.toLowerCase()
+    default: "doctor-" + typeOfDatabase.toLowerCase()
   });
 
   const service = {
     name: serviceName,
     "#description": typeOfDatabase + " database service",
-    containerName,
+    container_name,
     image: `${IMAGE_NAME[typeOfDatabase]}:${specificImageTag}`,
-    volumes: [`${persistLocation! || persistVolume!}:${DB_STORAGE[typeOfDatabase]}`],
-    restart: restartPolicy 
-  } as { name: string, [key:string]: any}
-  if(expose){
-    service.ports = [`${exposePort!}:${DEFAULT_PORT[typeOfDatabase]}`]
+    volumes: [
+      `${persistLocation! || persistVolume!}:${DB_STORAGE[typeOfDatabase]}`
+    ],
+    restart: restartPolicy
+  } as { name: string; [key: string]: any };
+  if (expose) {
+    service.ports = [`${exposePort!}:${DEFAULT_PORT[typeOfDatabase]}`];
   }
-  if(!loadEnvFromFile){
-    service.environment = env
-    env = null
-  }else {
-    service.env_file = [".env"]
+  if (!loadEnvFromFile) {
+    service.environment = env;
+    env = null;
+  } else {
+    service.env_file = [".env"];
   }
 
   return {
     service,
     env
-  }
+  };
 }
