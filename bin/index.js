@@ -1,3 +1,5 @@
 #! /usr/bin/env node
 
-import '../build/index.js'
+import Bin from '../build/index.js'
+
+Bin()

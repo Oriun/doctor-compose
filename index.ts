@@ -3,6 +3,9 @@ import Inquirer from "inquirer";
 import { blue } from "./src/colors.js";
 import Database from "./src/database.js";
 import Yml from "js-yaml";
+import esMain from 'es-main';
+
+
 const modules = {
   Database
 } as {
@@ -39,7 +42,7 @@ export async function writeCompose() {
     env: {} as { [key: string]: string } | null
   };
 }
-async function main({} = {}) {
+export async function main({} = {}) {
   console.log(
     blue(
       "\nWelcome to Doctor-Compose, the CLI that diagnose your app and find you the best docker-compose solution.\n"
@@ -48,7 +51,7 @@ async function main({} = {}) {
 
   const { compose, env } = await writeCompose();
 
-  await writeFile("docker-compose.yml", Yml.dump(compose));
+  await writeFile("docker-compose.yml", Yml.dump(compose).replace(/'#/g,'#'));
   if (env) {
     await writeFile(
       ".env",
@@ -58,5 +61,7 @@ async function main({} = {}) {
     );
   }
 }
-
-main();
+//@ts-ignore
+if (esMain(import.meta)) {
+    main()
+} 
