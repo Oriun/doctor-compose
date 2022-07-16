@@ -1,6 +1,8 @@
 version: '3'
 
 tasks:
+  default:
+    deps: [start]
   start:
     cmds:
       - go run main.go
