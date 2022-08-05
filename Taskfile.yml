@@ -1,0 +1,50 @@
+version: '3'
+
+tasks:
+  default:
+    deps: [start]
+  start:
+    cmds:
+      - go run main.go
+  build:
+    deps: [lin_build, mac_build, win_build]
+    cmds:
+      - du -h build/*
+    sources:
+      - ./main.go
+      - ./src/**/*
+  clean:
+    cmds:
+      - rm build/*
+      - rm docker-compose.yml .env
+  build_here:
+    cmds:
+      - go build -o build/doctor-compose -v main.go
+  lin_build:
+    cmds:
+      - GOOS=linux GOARCH=386 go build -o build/doctor-compose-linux main.go
+    sources:
+      - ./main.go
+      - ./src/**/*
+    generates:
+      - ./build/doctor-compose-linux
+  mac_build:
+    cmds:
+      - GOOS=darwin GOARCH=amd64 go build -o build/doctor-compose-mac main.go
+    sources:
+      - ./main.go
+      - ./src/**/*
+    generates:
+      - ./build/doctor-compose-mac
+  win_build:
+    cmds:
+      - GOOS=windows GOARCH=386 go build -o build/doctor-compose-win.exe main.go
+    sources:
+      - ./main.go
+      - ./src/**/*
+    generates:
+      - ./build/doctor-compose-win.exe
+  demo:
+    deps: [build_here]
+    cmds:
+      - ./build/doctor-compose

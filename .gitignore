@@ -1,5 +1,4 @@
-node_modules
-
-yarn*
-package-lock.json
 build
+.task
+js
+vendor
