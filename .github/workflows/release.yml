@@ -8,9 +8,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: ./.github/workflows/test
+      - uses: ./.github/workflows/test.yml
 
   release:
+    needs: test
     name: Create Release
     runs-on: ubuntu-latest
     strategy:
@@ -30,3 +31,5 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
+          md5sum: FALSE
+          
