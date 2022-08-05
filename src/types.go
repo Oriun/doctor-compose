@@ -17,14 +17,19 @@ type Env struct {
 	Description string `json:"description"`
 }
 
+type TagResponse struct {
+	Results []struct {
+		Name string `json:"name"`
+	} `json:"results"`
+}
+
 type Service struct {
-	Container_name string            `yaml:"container_name,omitempty"`
-	Image          string            `yaml:"image,omitempty"`
-	Volumes        []string          `yaml:"volumes,omitempty"`
-	Restart        string            `yaml:"restart,omitempty"`
-	Ports          []string          `yaml:"ports,omitempty"`
-	Env            map[string]string `yaml:"env,omitempty"`
-	Env_file       []string          `yaml:"env_file,omitempty"`
+	Description string            `yaml:"#description,omitempty"`
+	Image       string            `yaml:"image,omitempty"`
+	Volumes     []string          `yaml:"volumes,omitempty"`
+	Restart     string            `yaml:"restart,omitempty"`
+	Ports       []string          `yaml:"ports,omitempty"`
+	Env         map[string]string `yaml:"environment,omitempty"`
 }
 
 type Compose struct {

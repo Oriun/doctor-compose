@@ -13,6 +13,10 @@ tasks:
     sources:
       - ./main.go
       - ./src/**/*
+  clean:
+    cmds:
+      - rm build/*
+      - rm docker-compose.yml .env
   build_here:
     cmds:
       - go build -o build/doctor-compose -v main.go
