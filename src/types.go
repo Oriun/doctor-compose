@@ -33,6 +33,10 @@ type Service struct {
 }
 
 type Compose struct {
-	Version  string             `yaml:"version"`
-	Services map[string]Service `yaml:"services"`
+	Version  string                 `yaml:"version"`
+	Services map[string]Service     `yaml:"services"`
+	Volumes  map[string]interface{} `yaml:"volumes,omitempty"`
+	Configs  map[string]interface{} `yaml:"configs,omitempty"`
+	Secrets  map[string]interface{} `yaml:"secrets,omitempty"`
+	Networks map[string]interface{} `yaml:"networks,omitempty"`
 }
