@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	types "oriun/doctor-compose/src"
 	"oriun/doctor-compose/src/database"
+	"os"
 
 	"github.com/AlecAivazis/survey/v2"
 	"gopkg.in/yaml.v3"
@@ -170,8 +171,13 @@ func main() {
 	}
 
 	if len(env) > 0 {
-		err = ioutil.WriteFile(".env", []byte(env), 0777)
+		file, _ := os.OpenFile(".env", os.O_APPEND|os.O_WRONLY, 0777)
 
+		_, err := file.WriteString("\n" + env)
+		if err != nil {
+			panic(err)
+		}
+		err = file.Close()
 		if err != nil {
 			panic(err)
 		}
