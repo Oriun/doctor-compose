@@ -1,7 +1,9 @@
 package nodejs
 
 import (
+	"fmt"
 	types "oriun/doctor-compose/src"
+	nodejs_data "oriun/doctor-compose/src/nodejs/data"
 )
 
 func getNames(vs []types.SupportedNodeFrameworks) []string {
@@ -17,6 +19,7 @@ func GetService() (string, types.Service, string) {
 	var name = ""
 	var env_string = ""
 
+	fmt.Println(getNames(nodejs_data.Data))
 	/*
 	 * Do things here
 	 */
