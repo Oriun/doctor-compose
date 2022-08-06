@@ -77,6 +77,9 @@ func useExistingCompose() (types.Compose, bool) {
 
 func mergeCompose(from *types.Compose, into *types.Compose, overwrite bool) {
 	for k, v := range from.Services {
+		if len(into.Services) == 0 || overwrite {
+			into.Services = map[string]types.Service{}
+		}
 		_, ok := into.Services[k]
 		if !ok || overwrite {
 			into.Services[k] = v
