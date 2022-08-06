@@ -9,6 +9,15 @@ type SupportedDatabase struct {
 	Envs    []Env  `json:"envs"`
 }
 
+type SupportedNodeFrameworks struct {
+	Name         string `json:"name"`
+	Package      string `json:"package"`
+	Version      string `json:"version"`
+	Envs         []Env  `json:"envs"`
+	BuildCommand string `json:"build_command"`
+	RunCommand   string `json:"run_command"`
+}
+
 type Env struct {
 	Label       string `json:"label"`
 	VarName     string `json:"var_name"`

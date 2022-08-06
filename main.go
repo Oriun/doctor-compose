@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	types "oriun/doctor-compose/src"
 	"oriun/doctor-compose/src/database"
+	"oriun/doctor-compose/src/nodejs"
 	"os"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -26,7 +27,7 @@ var qs = []*survey.Question{
 		Name: "type",
 		Prompt: &survey.Select{
 			Message: "What type of project are you creating ?",
-			Options: []string{"Database", "Other"},
+			Options: []string{"Database", "Nodejs backend", "Other"},
 			Default: "Database",
 		},
 	},
@@ -48,6 +49,11 @@ func WriteCompose() (types.Compose, string) {
 	var envs string
 	if answers.Type == "Database" {
 		name, service, env := database.GetService()
+		services[name] = service
+		envs = env + envs
+	}
+	if answers.Type == "Nodejs backend" {
+		name, service, env := nodejs.GetService()
 		services[name] = service
 		envs = env + envs
 	}
