@@ -1,10 +1,10 @@
 package database
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	types "oriun/doctor-compose/src"
 	"regexp"
@@ -78,11 +78,12 @@ func fetchTags(url string, wg *sync.WaitGroup, result chan []string) {
 
 func randomString(length int) string {
 	var chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	var randomString []byte
-	for i := 0; i < 10; i++ {
-		randomString = append(randomString, chars[rand.Intn(len(chars))])
+	var bytes = make([]byte, length)
+	rand.Read(bytes)
+	for k, v := range bytes {
+		bytes[k] = chars[v%byte(len(chars))]
 	}
-	return string(randomString)
+	return string(bytes)
 }
 
 func populate(str string) string {
@@ -94,6 +95,20 @@ func populate(str string) string {
 func GetService() (string, types.Service, string) {
 	/* Final service data */
 	service := types.Service{}
+
+	fmt.Println(randomString(16))
+	fmt.Println(randomString(16))
+	fmt.Println(randomString(16))
+	fmt.Println(randomString(16))
+	fmt.Println(randomString(16))
+	fmt.Println(randomString(16))
+	fmt.Println(randomString(16))
+	fmt.Println(randomString(16))
+	fmt.Println(randomString(16))
+	fmt.Println(randomString(16))
+	fmt.Println(randomString(16))
+	fmt.Println(randomString(16))
+	fmt.Println(randomString(16))
 
 	/* Answers object */
 	answers := struct {
