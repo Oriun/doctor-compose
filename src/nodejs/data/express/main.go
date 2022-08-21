@@ -8,7 +8,7 @@ var Data = []types.SupportedNodeFrameworks{
 		Package: "express",
 		Version: map[string]types.NodeFrameWorkVerions{
 			"^4.0.0": {
-				RunCommand: "yarn start",
+				RunCommand: "npm run start",
 				Envs: []types.Env{
 					{
 						Label:       "NODE_ENV",
@@ -25,7 +25,8 @@ var Data = []types.SupportedNodeFrameworks{
 						Tags: []string{
 							"mongodb",
 						},
-						RunCommand: "yarn docker:prod",
+						RunCommand:   "npm run docker:prod",
+						CloneCommand: "git clone --depth 1 https://github.com/hagopj13/node-express-boilerplate.git ${APP_NAME}",
 						Envs: []types.Env{
 							{
 								Label:       "Port number",
@@ -96,8 +97,8 @@ var Data = []types.SupportedNodeFrameworks{
 		Package: "express",
 		Version: map[string]types.NodeFrameWorkVerions{
 			"^4.0.0": {
-				BuildCommand: "yarn build",
-				RunCommand:   "yarn start",
+				BuildCommand: "npm run build",
+				RunCommand:   "npm run start",
 				Envs: []types.Env{
 					{
 						Label:       "NODE_ENV",
@@ -113,6 +114,7 @@ var Data = []types.SupportedNodeFrameworks{
 						Url:          "https://github.com/w3tecch/express-typescript-boilerplate.git",
 						BuildCommand: "yarn start build",
 						RunCommand:   "yarn start",
+						CloneCommand: "git clone -b develop https://github.com/w3tecch/express-typescript-boilerplate.git ${APP_NAME} && rm -rf ${APP_NAME}/.git",
 						Envs: []types.Env{
 							{
 								Label:       "Port number",

@@ -1,5 +1,11 @@
-package types
+package base
 
+import "github.com/savioxavier/termlink"
+
+type PopulateFields map[string]string
+type Namable interface {
+	getName() string
+}
 type SupportedDatabase struct {
 	Name    string
 	Image   string
@@ -9,6 +15,10 @@ type SupportedDatabase struct {
 	Envs    []Env
 }
 
+func (data SupportedDatabase) getName() string {
+	return data.Name
+}
+
 type BoilerPlate struct {
 	Name         string
 	Url          string
@@ -16,6 +26,14 @@ type BoilerPlate struct {
 	BuildCommand string
 	RunCommand   string
 	Envs         []Env
+	CloneCommand string
+}
+
+func (data BoilerPlate) getName() string {
+	return data.Name
+}
+func (data BoilerPlate) GetLink() string {
+	return termlink.Link("ctrl+click to see on github", data.Url)
 }
 
 type NodeFrameWorkVerions struct {
@@ -29,6 +47,10 @@ type SupportedNodeFrameworks struct {
 	Name    string
 	Package string
 	Version map[string]NodeFrameWorkVerions
+}
+
+func (data SupportedNodeFrameworks) getName() string {
+	return data.Name
 }
 
 type Env struct {

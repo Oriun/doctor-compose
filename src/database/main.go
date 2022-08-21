@@ -1,12 +1,11 @@
 package database
 
 import (
-	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	types "oriun/doctor-compose/src"
+	base "oriun/doctor-compose/src"
 	"regexp"
 	"sort"
 	"strings"
@@ -15,7 +14,7 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 )
 
-func getNames(vs []types.SupportedDatabase) []string {
+func getNames(vs []base.SupportedDatabase) []string {
 	vsm := make([]string, len(vs))
 	for i, v := range vs {
 		vsm[i] = v.Name
@@ -47,7 +46,7 @@ func fetchTags(url string, wg *sync.WaitGroup, result chan []string) {
 		return
 	}
 
-	var tags types.TagResponse
+	var tags base.TagResponse
 	err = json.Unmarshal([]byte(resBody), &tags)
 	if err != nil {
 		fmt.Printf("client: could not parse response body: %s\n", err)
@@ -76,39 +75,9 @@ func fetchTags(url string, wg *sync.WaitGroup, result chan []string) {
 	result <- append([]string{recommendedTag}, tagList...)
 }
 
-func randomString(length int) string {
-	var chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	var bytes = make([]byte, length)
-	rand.Read(bytes)
-	for k, v := range bytes {
-		bytes[k] = chars[v%byte(len(chars))]
-	}
-	return string(bytes)
-}
-
-func populate(str string) string {
-	var s = str
-	s = strings.Replace(s, "${RANDOM_STRING}", randomString(16), -1)
-	return s
-}
-
-func GetService() (string, types.Service, string) {
+func GetService() (string, base.Service, string) {
 	/* Final service data */
-	service := types.Service{}
-
-	fmt.Println(randomString(16))
-	fmt.Println(randomString(16))
-	fmt.Println(randomString(16))
-	fmt.Println(randomString(16))
-	fmt.Println(randomString(16))
-	fmt.Println(randomString(16))
-	fmt.Println(randomString(16))
-	fmt.Println(randomString(16))
-	fmt.Println(randomString(16))
-	fmt.Println(randomString(16))
-	fmt.Println(randomString(16))
-	fmt.Println(randomString(16))
-	fmt.Println(randomString(16))
+	service := base.Service{}
 
 	/* Answers object */
 	answers := struct {
@@ -140,7 +109,7 @@ func GetService() (string, types.Service, string) {
 	}
 
 	/* 1.1 Get chosen database config */
-	var currentDB types.SupportedDatabase
+	var currentDB base.SupportedDatabase
 	for i := range Data {
 		if Data[i].Name == answers.Type {
 			currentDB = Data[i]
@@ -325,7 +294,7 @@ func GetService() (string, types.Service, string) {
 				Prompt: &survey.Input{
 					Message: env.Label + " (default to randomly generated)",
 					Help:    env.Description,
-					Default: populate(env.Default),
+					Default: base.Populate(env.Default, base.PopulateFields{}),
 				},
 			},
 		}, &tmp)
