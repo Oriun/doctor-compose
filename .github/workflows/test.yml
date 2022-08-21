@@ -11,8 +11,10 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '>=1.19.0'
       - name: Get package
         run: go mod download && go mod vendor && go mod verify
       - name: run tests
