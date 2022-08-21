@@ -6,6 +6,14 @@ This tool is solo-maintained by me [@Oriun](https://github.com/Oriun) with more 
 
 ## Installation
 
+#### Installation script
+
+```bash
+curl -sSL https://raw.githubusercontent.com/Oriun/doctor-compose/master/install.sh | bash
+```
+
+#### Manual
+
 Go to the [Release page](https://github.com/Oriun/doctor-compose/releases) and download the latest version. Unzip the archive and move the binary to your bin folder.
 
 ## Roadmap
