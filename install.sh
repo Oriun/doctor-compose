@@ -1,8 +1,10 @@
 ARCHIVE_EXTENSION="tar.gz"
+
 # Get OS and arch
 
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
-if [ "$OS" = "windowsnt" ]; then
+WIN_OS="windowsnt mingw64_nt-10.0-22000"
+if echo "$WIN_OS" | grep -q "$OS"; then
     OS="windows"
     ARCHIVE_EXTENSION="zip"
 fi
