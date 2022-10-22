@@ -34,6 +34,16 @@ func Populate(str string, data PopulateFields) string {
 	})
 }
 
+func GetKeysOfMap[T interface{}](m map[string]T) []string {
+	keys := make([]string, len(m))
+	i := 0
+	for k := range m {
+		keys[0] = k
+		i++
+	}
+	return keys
+}
+
 func GetNames[T Namable](vs []T) []string {
 	vsm := make([]string, len(vs))
 	for i, v := range vs {

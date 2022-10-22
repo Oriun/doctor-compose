@@ -8,9 +8,9 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
-	semver "github.com/hashicorp/go-version"
 )
 
 type Answers struct {
@@ -21,6 +21,8 @@ type Answers struct {
 	Version         string
 	BoilerplateName string
 	Boilerplate     base.BoilerPlate
+	Option          string
+	UseBoilerPlate  bool
 }
 
 func automaticConfiguration(answers *Answers) {
@@ -30,7 +32,6 @@ func automaticConfiguration(answers *Answers) {
 func mannualConfiguration(answers *Answers) {
 	names := base.GetNames(nodejs_data.Data)
 	var selectedFramework base.SupportedNodeFrameworks
-	var version string
 
 	err := survey.Ask([]*survey.Question{
 		{
@@ -54,27 +55,28 @@ func mannualConfiguration(answers *Answers) {
 	}
 	answers.Selected = selectedFramework
 
-	for key := range selectedFramework.Version {
-		if version == "" {
-			version = key
-		} else {
-			current, err := semver.NewVersion(version)
-			if err != nil {
-				panic(err)
-			}
-			other, err := semver.NewVersion(key)
-			if err != nil {
-				panic(err)
-			}
-			if current.LessThan(other) {
-				version = key
-			}
-		}
-
+	options := make([]string, len(selectedFramework.Options))
+	i := 0
+	for k := range selectedFramework.Options {
+		options[i] = k
+		i++
 	}
-	answers.Version = version
 
-	boilerplates, ok := selectedFramework.Version[version]
+	err = survey.Ask([]*survey.Question{
+		{
+			Name: "option",
+			Prompt: &survey.Select{
+				Message: "You want to use :",
+				Options: options,
+				Default: options[0],
+			},
+		},
+	}, answers)
+	if err != nil {
+		panic((err))
+	}
+
+	option, ok := selectedFramework.Options[answers.Option]
 
 	if !ok {
 		panic("No boilerplate found for this version")
@@ -82,46 +84,62 @@ func mannualConfiguration(answers *Answers) {
 
 	err = survey.Ask([]*survey.Question{
 		{
-			Name: "boilerplateName",
-			Prompt: &survey.Select{
-				Message: "What boilerplate do you want to use ?",
-				Options: base.GetNames(boilerplates.BoilerPlate),
-				Default: base.GetNames(boilerplates.BoilerPlate)[0],
-				Description: func(value string, index int) string {
-					return boilerplates.BoilerPlate[index].GetLink()
-				},
+			Name: "useBoilerPlate",
+			Prompt: &survey.Confirm{
+				Message: "Do you want to use a boilerplate ?",
+				Default: false,
 			},
 		},
 	}, answers)
-
-	for i := range boilerplates.BoilerPlate {
-		if boilerplates.BoilerPlate[i].Name == answers.BoilerplateName {
-			answers.Boilerplate = boilerplates.BoilerPlate[i]
-			break
-		}
-	}
 
 	clean1 := regexp.MustCompile(`[^a-zA-Z0-9]`)
 	clean2 := regexp.MustCompile(`(^[^a-zA-Z]|[^a-zA-Z]$)`)
 	answers.Name = clean2.ReplaceAllString(clean1.ReplaceAllString(answers.Cwd, ""), "-")
 
-	fmt.Printf("Creating %s app...", answers.Name)
-	shellcmd := base.Populate(answers.Boilerplate.CloneCommand, base.PopulateFields{"APP_NAME": answers.Name})
-	fmt.Printf("Running \n%s\n", shellcmd)
-	cmd := exec.Command("/bin/sh", "-c", shellcmd)
-	stderr, _ := cmd.StderrPipe()
-	cmd.Start()
+	if !answers.UseBoilerPlate {
 
-	scanner := bufio.NewScanner(stderr)
-	scanner.Split(bufio.ScanWords)
-	for scanner.Scan() {
-		m := scanner.Text()
-		fmt.Print(m + " ")
-	}
-	err = cmd.Wait()
+		fmt.Printf("Creating %s app...", answers.Name)
 
-	if err != nil {
-		panic(err)
+		shellcmd := base.Populate(strings.Join(option.ManualConfig.InstallCommand, " ; "), base.PopulateFields{"APP_NAME": answers.Name})
+		// fmt.Printf("Running \n%s\n", shellcmd)
+		cmd := exec.Command("/bin/sh", "-c", shellcmd)
+		stderr, _ := cmd.StderrPipe()
+		cmd.Start()
+
+		scanner := bufio.NewScanner(stderr)
+		scanner.Split(bufio.ScanWords)
+		for scanner.Scan() {
+			m := scanner.Text()
+			fmt.Print(m + " ")
+		}
+		err = cmd.Wait()
+
+		if err != nil {
+			panic(err)
+		}
+
+	} else {
+
+		answers.Boilerplate = option.BoilerPlate
+
+		fmt.Printf("Creating %s app...", answers.Name)
+		shellcmd := base.Populate(answers.Boilerplate.CloneCommand, base.PopulateFields{"APP_NAME": answers.Name})
+		fmt.Printf("Running \n%s\n", shellcmd)
+		cmd := exec.Command("/bin/sh", "-c", shellcmd)
+		stderr, _ := cmd.StderrPipe()
+		cmd.Start()
+
+		scanner := bufio.NewScanner(stderr)
+		scanner.Split(bufio.ScanWords)
+		for scanner.Scan() {
+			m := scanner.Text()
+			fmt.Print(m + " ")
+		}
+		err = cmd.Wait()
+
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	fmt.Println("\nSuccess!")

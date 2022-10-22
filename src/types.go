@@ -36,17 +36,23 @@ func (data BoilerPlate) GetLink() string {
 	return termlink.Link("ctrl+click to see on github", data.Url)
 }
 
-type NodeFrameWorkVerions struct {
+type NodeFrameWorkOption struct {
 	BuildCommand string
 	RunCommand   string
 	Envs         []Env
-	BoilerPlate  []BoilerPlate
+	BoilerPlate  BoilerPlate
+	ManualConfig ManualConfigOption
+}
+type ManualConfigOption struct {
+	BuildCommand   string
+	RunCommand     string
+	InstallCommand []string
 }
 
 type SupportedNodeFrameworks struct {
 	Name    string
 	Package string
-	Version map[string]NodeFrameWorkVerions
+	Options map[string]NodeFrameWorkOption
 }
 
 func (data SupportedNodeFrameworks) getName() string {
